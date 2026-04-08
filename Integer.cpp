@@ -23,29 +23,32 @@ void Integer::InitFromString(const char *stevilo)
     }
 }
 
-Integer Integer::AdditionHelperFunction(const Integer &ref, char (Integer::*operation)(char, char))
+Integer Integer::DelnoSestej(const Integer &ref, char (Integer::*operation)(char, char))
+// ta Integer::*operation je function pointer
 {
     Integer answer(""); // initialize the return value
     Integer first = *this, second = ref;
-    int delta_length;
+    int razlika_dolzine;
     std::vector<char>::const_iterator itr, end;
 
-    delta_length = first.size() - second.size();
+    razlika_dolzine = first.size() - second.size();
     first.push_back(0);
     second.push_back(0);
-    if (delta_length < 0)
+    if (razlika_dolzine < 0)
     {
-        delta_length *= -1;
-        for (int i = 0; i < delta_length; i++)
+        razlika_dolzine *= -1;
+        for (int i = 0; i < razlika_dolzine; i++)
             first.push_back(0);
     }
     else
-        for (int i = 0; i < delta_length; i++)
+        for (int i = 0; i < razlika_dolzine; i++)
             second.push_back(0);
 
     int length = first.size();
     answer.integer.reserve(length);
 
+
+    //sledi enostavno pisno seštevanje
     char carry = 0;
     for (int i = 0; i < length; i++)
     {
@@ -55,7 +58,7 @@ Integer Integer::AdditionHelperFunction(const Integer &ref, char (Integer::*oper
         if (answer.back() > 9)
         {
             carry = 1;
-            answer.integer.back() -= 10; // back returns a read/write reference to the last element
+            answer.integer.back() -= 10; // .back() returns a read/write reference to the last element (sm uprasu chatgpt)
         }
     }
 
@@ -65,33 +68,36 @@ Integer Integer::AdditionHelperFunction(const Integer &ref, char (Integer::*oper
     return answer;
 }
 
-char Integer::add(char a, char b)
-{
-    return a + b;
-}
-char Integer::subtract(char a, char b)
-{
-    return a - b;
-}
+//to imamo samo za to da lahko funkciji (delnoSestej) povemo a želmo seštet ali pa odštet
+// lahko bi uporabil tudi lambde vendar jih neznam
+char Integer::add(char a, char b) { return a + b; }
+char Integer::subtract(char a, char b) { return a - b; }
 
+
+// --------------------- inicializacija --------------------- //
+// constructorji
+// brez argumentov
 Integer::Integer()
 {
     integer.push_back(0);
     sign = '+';
 }
 
+// iz stringa
 Integer::Integer(const char *stevilo)
 {
     InitFromString(stevilo);
-};
+}
 
+//iz integerja
 Integer::Integer(const long long int stevilo)
 {
-    char buffer[20]; // mislim da je max velikost inta okoli 10^18
+    char buffer[20]; //max velikost int-a je okoli 10^18
     sprintf(buffer, "%lld", stevilo);
     InitFromString(buffer);
-};
+}
 
+// copy constructor (nevem zakaj ze rabm to)
 Integer::Integer(const Integer &ref)
 {
     integer = ref.integer;
@@ -120,36 +126,37 @@ char Integer::back()
 
 Integer Integer::operator++(int)
 {
-    // tuki mi je mogu pomagat AI, nevem kako ne razumem kako deluje ta operator
+    // tuki mi je mogu pomagat AI, ne razumem kako deluje ta operator
     Integer temp = *this; // Save the current value
     Integer int1("1");
     *this = *this + int1; // Increment the current object
     return temp;          // Return the original value
 }
 
+// seštevanje
 Integer Integer::operator+(const Integer &other)
 {
-    if ((this->sign == other.sign))
+    if ((this->sign == other.sign)) // če sta si predznaka enaka
     {
-        if (this->sign == '-')
+        if (this->sign == '-') // če sta oba -
         {
-            Integer odgovor = AdditionHelperFunction(other, add);
-            odgovor.sign = '-';
+            Integer odgovor = DelnoSestej(other, add);
+            odgovor.sign = '-'; // vrnemo seštevek z minusom odspredi
             return odgovor;
         }
-        return AdditionHelperFunction(other, add);
+        return DelnoSestej(other, add); // drugače vrnemo samo seštevek s plusom
     }
-    if ((this->sign == '+') && (other.sign == '-'))
+    if ((this->sign == '+') && (other.sign == '-')) // če je drugi predznak -
     {
         Integer temp = other;
-        return AdditionHelperFunction(other, subtract);
+        return DelnoSestej(other, subtract); // odštejemo drugega
     }
-    if ((this->sign == '-') && (other.sign == '+'))
+    if ((this->sign == '-') && (other.sign == '+')) // če je prvi predznak minus
     {
         Integer temp = *this;
-        *this = other;
+        *this = other; // ju zamenjamo
         temp.sign = '+';
-        return AdditionHelperFunction(other, subtract);
+        return DelnoSestej(other, subtract); // odštejemo drugega
     }
     return Integer(112);
 }
@@ -171,6 +178,7 @@ Integer Integer::operator*(Integer const &other)
     answer.integer.reserve(this->size() + other.size() + 1);
     Integer pristevek;
     pristevek.integer.reserve(other.size() + 1);
+
     for (i = 0; i < this->size(); i++) // desna stevilka pri pisnem mnozenju
     {
         pristevek.integer.clear();
@@ -180,7 +188,6 @@ Integer Integer::operator*(Integer const &other)
         }
 
         carry = 0;
-
         for (j = 0; j < other.size(); j++) // leva stevilka pri pisnem mnozenju
         {
             zmnozek = this->integer[i] * other.integer[j] + carry;
@@ -196,7 +203,6 @@ Integer Integer::operator*(Integer const &other)
 
         if (carry > 0)
             pristevek.push_back(carry);
-
         answer = answer + pristevek;
     }
 
@@ -208,7 +214,7 @@ Integer Integer::operator*(Integer const &other)
     return answer;
 }
 
-//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
 // other
 void Integer::print()
 {
