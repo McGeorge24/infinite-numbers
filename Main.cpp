@@ -4,7 +4,14 @@ int main()
 {
     Integer int1 = 99999;
     Integer int2 = 99999;
+    printf("int1: ");
+    int1.print();
+    printf("\n");
+    printf("int2: ");
+    int1.print();
+    printf("\n");
     int1 = int1 + int2;
+    printf("int1+int2: ");
     int1.print();
     printf("\n");
     Integer int3 = -1234;
