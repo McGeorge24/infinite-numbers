@@ -2,24 +2,33 @@
 
 int main()
 {
-    Integer int1 = 99999;
-    Integer int2 = 99999;
-    printf("int1: ");
+    char buffer[20];
+
+    printf("Vpisi dve stevili:\nStevilo1: ");
+
+    scanf("%s", buffer);
+    Integer int1(buffer);
+
+    printf("Stevilo2: ");
+    scanf("%s", buffer);
+    Integer int2(buffer);
+
+    printf("int1=");
     int1.print();
     printf("\n");
-    printf("int2: ");
-    int1.print();
+
+    printf("int2=");
+    int2.print();
     printf("\n");
-    int1 = int1 + int2;
-    printf("int1+int2: ");
-    int1.print();
+
+    Integer int3 = int1 + int2;
+    printf("int1+int2=");
+    int3.print();
     printf("\n");
-    Integer int3 = -1234;
-    Integer int4 = 7855;
-    int4 = int4 + int3;
-    int4.print();
+
+    int3 = int1 * int2;
+    printf("int1*int2=");
+    int3.print();
     printf("\n");
-    int4 = int2 * int3;
-    int4.print();
     return 0;
 }
