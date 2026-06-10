@@ -1,26 +1,24 @@
 #include "Integer.h"
 
-void Integer::InitFromString(const char *stevilo)
+void Integer::InitFromString(const char *buffer)
 {
     int i = 0;
-    int length = strlen(stevilo);
-    int length_excl_minus = length;
-    if (stevilo[0] == '-')
+    int length = strlen(buffer);
+    // preverim predznak
+    if (buffer[0] == '-')
     {
         sign = '-';
-        length_excl_minus--;
+        length--;
+        buffer += 1; // premakne pointer do začetka za 1
     }
     else
         sign = '+';
 
-    integer.reserve(length_excl_minus); // for better performance
+    integer.reserve(length);
 
-    for (i = 0; i < length_excl_minus; i++)
-    {
-        // the digits are saved in reverse order,
-        // because integers must be aligned with the right most digit for addition
-        integer.push_back(stevilo[strlen(stevilo) - 1 - i] - 48);
-    }
+    // integer[0] so enice, integer[1] desetice ...
+    for (i = 0; i < length; i++)
+        integer.push_back(buffer[strlen(buffer) - 1 - i] - 48);
 }
 
 Integer Integer::DelnoSestej(const Integer &ref, char (Integer::*operation)(char, char))
@@ -47,8 +45,7 @@ Integer Integer::DelnoSestej(const Integer &ref, char (Integer::*operation)(char
     int length = first.size();
     answer.integer.reserve(length);
 
-
-    //sledi enostavno pisno seštevanje
+    // sledi enostavno pisno seštevanje
     char carry = 0;
     for (int i = 0; i < length; i++)
     {
@@ -68,11 +65,10 @@ Integer Integer::DelnoSestej(const Integer &ref, char (Integer::*operation)(char
     return answer;
 }
 
-//to imamo samo za to da lahko funkciji (delnoSestej) povemo a želmo seštet ali pa odštet
-// lahko bi uporabil tudi lambde vendar jih neznam
+// to imamo samo za to da lahko funkciji (delnoSestej) povemo a želmo seštet ali pa odštet
+//  lahko bi uporabil tudi lambde vendar jih neznam
 char Integer::add(char a, char b) { return a + b; }
 char Integer::subtract(char a, char b) { return a - b; }
-
 
 // --------------------- inicializacija --------------------- //
 // constructorji
@@ -89,10 +85,10 @@ Integer::Integer(const char *stevilo)
     InitFromString(stevilo);
 }
 
-//iz integerja
+// iz integerja
 Integer::Integer(const long long int stevilo)
 {
-    char buffer[20]; //max velikost int-a je okoli 10^18
+    char buffer[20]; // max velikost int-a je okoli 10^18
     sprintf(buffer, "%lld", stevilo);
     InitFromString(buffer);
 }
