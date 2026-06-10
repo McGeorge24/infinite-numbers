@@ -13,9 +13,8 @@ private:
     char sign;
     void InitFromString(const char *stevilo); // funkcija, ki se uporabi v 2 constructorjih
 
-    Integer DelnoSestej(const Integer &ref, char (Integer::*operation)(char, char)); // assumes both numbers are positive
-    char add(char a, char b);                                                        // AditionHelperFunction Helper Function
-    char subtract(char a, char b);                                                   // AditionHelperFunction Helper Function
+    Integer DelnoSestej(const Integer &ref, char predznak);                          // assumes both numbers are positive; 
+    //predznak -1 for subraction, 1 for adition
 public:
     Integer();                      // default constructor
     Integer(const char *stevilo);   // construct with char array

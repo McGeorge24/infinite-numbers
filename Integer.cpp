@@ -21,7 +21,7 @@ void Integer::InitFromString(const char *buffer)
         integer.push_back(buffer[strlen(buffer) - 1 - i] - 48);
 }
 
-Integer Integer::DelnoSestej(const Integer &ref, char (Integer::*operation)(char, char))
+Integer Integer::DelnoSestej(const Integer &ref, char predznak)
 // ta Integer::*operation je function pointer
 {
     Integer answer(""); // initialize the return value
@@ -49,8 +49,9 @@ Integer Integer::DelnoSestej(const Integer &ref, char (Integer::*operation)(char
     char carry = 0;
     for (int i = 0; i < length; i++)
     {
-        // if it aint broke dont fix it
-        answer.push_back((this->*operation)((this->*operation)(first.integer[i], second.integer[i]), carry));
+        // if it aint broke dont fix it, and then i still fixed it
+        //
+        answer.push_back(first.integer[i] + predznak*second.integer[i] + predznak*carry);
         carry = 0;
         if (answer.back() > 9)
         {
@@ -64,11 +65,6 @@ Integer Integer::DelnoSestej(const Integer &ref, char (Integer::*operation)(char
 
     return answer;
 }
-
-// to imamo samo za to da lahko funkciji (delnoSestej) povemo a želmo seštet ali pa odštet
-//  lahko bi uporabil tudi lambde vendar jih neznam
-char Integer::add(char a, char b) { return a + b; }
-char Integer::subtract(char a, char b) { return a - b; }
 
 // --------------------- inicializacija --------------------- //
 // constructorji
@@ -136,23 +132,23 @@ Integer Integer::operator+(const Integer &other)
     {
         if (this->sign == '-') // če sta oba -
         {
-            Integer odgovor = DelnoSestej(other, add);
+            Integer odgovor = DelnoSestej(other, 1);
             odgovor.sign = '-'; // vrnemo seštevek z minusom odspredi
             return odgovor;
         }
-        return DelnoSestej(other, add); // drugače vrnemo samo seštevek s plusom
+        return DelnoSestej(other, 1); // drugače vrnemo samo seštevek s plusom
     }
     if ((this->sign == '+') && (other.sign == '-')) // če je drugi predznak -
     {
         Integer temp = other;
-        return DelnoSestej(other, subtract); // odštejemo drugega
+        return DelnoSestej(other, -1); // odštejemo drugega
     }
     if ((this->sign == '-') && (other.sign == '+')) // če je prvi predznak minus
     {
         Integer temp = *this;
         *this = other; // ju zamenjamo
         temp.sign = '+';
-        return DelnoSestej(other, subtract); // odštejemo drugega
+        return DelnoSestej(other, -1); // odštejemo drugega
     }
     return Integer(112);
 }
