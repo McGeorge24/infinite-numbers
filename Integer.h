@@ -10,11 +10,17 @@ class Integer
 {
 private:
     std::vector<char> integer;
-    char sign;
+    char sign;                                //+1 ali -1
     void InitFromString(const char *stevilo); // funkcija, ki se uporabi v 2 constructorjih
 
-    Integer DelnoSestej(const Integer &ref, char predznak);                          // assumes both numbers are positive; 
-    //predznak -1 for subraction, 1 for adition
+    Integer DelnoSestej(const Integer &ref, char predznak); // assumes both numbers are positive;
+    // predznak -1 for subraction, 1 for adition
+
+    void trim(); //odstrani ničle na začetku
+    long long abs(); //vrne absolutno vrednost števila kot int
+    //tukaj se zavedam da overflowa pri velikih številih, vendar se problem pojavi
+    //samo ko sta dve števili, ki se jih primerja na tej meji (eno je čez, eno pa pod)
+
 public:
     Integer();                      // default constructor
     Integer(const char *stevilo);   // construct with char array
@@ -31,6 +37,6 @@ public:
     Integer operator+(const Integer &other);
     Integer operator-(const Integer &other);
     Integer operator*(Integer const &other);
-
-    void print();
+    long long to_int();
+    std::string to_str();
 };

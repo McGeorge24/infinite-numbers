@@ -7,12 +7,12 @@ void Integer::InitFromString(const char *buffer)
     // preverim predznak
     if (buffer[0] == '-')
     {
-        sign = '-';
+        sign = -1;
         length--;
         buffer += 1; // premakne pointer do začetka za 1
     }
     else
-        sign = '+';
+        sign = 1;
 
     integer.reserve(length);
 
@@ -22,7 +22,6 @@ void Integer::InitFromString(const char *buffer)
 }
 
 Integer Integer::DelnoSestej(const Integer &ref, char predznak)
-// ta Integer::*operation je function pointer
 {
     Integer answer(""); // initialize the return value
     Integer first = *this, second = ref;
@@ -30,6 +29,7 @@ Integer Integer::DelnoSestej(const Integer &ref, char predznak)
     std::vector<char>::const_iterator itr, end;
 
     razlika_dolzine = first.size() - second.size();
+    // da ne pride do memory access violation
     first.push_back(0);
     second.push_back(0);
     if (razlika_dolzine < 0)
@@ -43,26 +43,28 @@ Integer Integer::DelnoSestej(const Integer &ref, char predznak)
             second.push_back(0);
 
     int length = first.size();
+    if (first.to_int() < second.to_int())
+    {
+        Integer temp = first;
+        first = second;
+        second = temp;
+    }
     answer.integer.reserve(length);
 
     // sledi enostavno pisno seštevanje
     char carry = 0;
     for (int i = 0; i < length; i++)
     {
-        // if it aint broke dont fix it, and then i still fixed it
-        //
-        answer.push_back(first.integer[i] + predznak*second.integer[i] + predznak*carry);
+        answer.push_back(first.integer[i] + predznak * second.integer[i] + predznak * carry);
         carry = 0;
-        if (answer.back() > 9)
+        if ((answer.back() < 0) || (answer.back() > 9))
         {
             carry = 1;
-            answer.integer.back() -= 10; // .back() returns a read/write reference to the last element (sm uprasu chatgpt)
+            answer.integer.back() -= predznak * 10; // .back() returns a read/write reference to the last element (sm uprasu chatgpt)
         }
     }
 
-    if (answer.back() == 0)
-        answer.integer.pop_back();
-
+    answer.trim();
     return answer;
 }
 
@@ -72,7 +74,7 @@ Integer Integer::DelnoSestej(const Integer &ref, char predznak)
 Integer::Integer()
 {
     integer.push_back(0);
-    sign = '+';
+    sign = 1;
 }
 
 // iz stringa
@@ -89,7 +91,7 @@ Integer::Integer(const long long int stevilo)
     InitFromString(buffer);
 }
 
-// copy constructor (nevem zakaj ze rabm to)
+// copy constructor (tega zares nerabm)
 Integer::Integer(const Integer &ref)
 {
     integer = ref.integer;
@@ -128,38 +130,27 @@ Integer Integer::operator++(int)
 // seštevanje
 Integer Integer::operator+(const Integer &other)
 {
+    Integer temp;
     if ((this->sign == other.sign)) // če sta si predznaka enaka
     {
-        if (this->sign == '-') // če sta oba -
-        {
-            Integer odgovor = DelnoSestej(other, 1);
-            odgovor.sign = '-'; // vrnemo seštevek z minusom odspredi
-            return odgovor;
-        }
-        return DelnoSestej(other, 1); // drugače vrnemo samo seštevek s plusom
+        temp = DelnoSestej(other, 1);
+        temp.sign = this->sign;
+        return temp;
     }
-    if ((this->sign == '+') && (other.sign == '-')) // če je drugi predznak -
+    else
     {
-        Integer temp = other;
-        return DelnoSestej(other, -1); // odštejemo drugega
+        temp = DelnoSestej(other, -1);
+
+        temp.sign = this->sign; // če je prvi negativen: -a+b = -(b-a)
+        return temp;
     }
-    if ((this->sign == '-') && (other.sign == '+')) // če je prvi predznak minus
-    {
-        Integer temp = *this;
-        *this = other; // ju zamenjamo
-        temp.sign = '+';
-        return DelnoSestej(other, -1); // odštejemo drugega
-    }
-    return Integer(112);
+    return Integer(112); // errorcode
 }
 
 Integer Integer::operator-(const Integer &other)
 {
     Integer temp = other;
-    if (temp.sign == '-')
-        temp.sign = '+';
-    else
-        temp.sign = '-';
+    temp.sign *= -1;
     return *this + temp;
 }
 
@@ -198,24 +189,51 @@ Integer Integer::operator*(Integer const &other)
         answer = answer + pristevek;
     }
 
-    if (this->sign == other.sign)
-        answer.sign = '+';
-    else
-        answer.sign = '-';
-
+    answer.sign = this->sign * other.sign;
     return answer;
 }
 
 //--------------------------------------------------------------------------------------
 // other
-void Integer::print()
+std::string Integer::to_str()
 {
-    if (sign == '-')
-        printf("-");
+    std::string odgovor;
+    if (sign == -1)
+        odgovor.append("-1");
     for (int i = 0; i < integer.size(); i++)
     {
-        printf("%c", *(integer.end() - i - 1) + 48);
-        if (((integer.size() - i + 2) % 3 == 0) && (i != integer.size() - 1))
-            printf("\'");
+        odgovor.append("0");
+        odgovor.back()=*(integer.end() - i - 1) + 48;
+        if (((integer.size() - i + 2) % 3 == 0) && (i != integer.size() - 1)) {
+            odgovor.append("'");
+        }
+    }
+    return odgovor;
+}
+
+long long Integer::abs()
+{
+    int odgovor = 0;
+    int faktor = 1;
+    for (int i = 0; i < integer.size(); i++)
+    {
+        odgovor += integer[i] * faktor;
+        faktor *= 10;
+    }
+    return odgovor;
+}
+
+long long Integer::to_int() {
+    return (this->abs()) * (this->sign);
+}
+
+void Integer::trim()
+{
+    for (int i = integer.size() - 1; i >= 0; i--)
+    {
+        if (integer[i] == 0)
+            integer.pop_back();
+        else
+            break;
     }
 }
